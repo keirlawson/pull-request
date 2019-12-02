@@ -10,6 +10,10 @@ fn main() {
 
   //clone fork
 
+  //check if upstream remote exists, if not add
+
+  //fetch upstream remote
+
   //create branch from upstream master
 
   //had off to transformation
