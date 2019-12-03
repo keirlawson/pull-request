@@ -1,3 +1,3 @@
 fn main() {
-  pull_request::create_pr("", "");
+  pull_request::create_pr("", "").unwrap();
 }
