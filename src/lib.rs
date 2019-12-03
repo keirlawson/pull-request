@@ -9,19 +9,21 @@ use hubcaps::repositories::{ForkListOptions, Repo};
 use hubcaps::{Credentials, Github, Result};
 
 pub fn create_pr(organisation: &str, repository: &str) -> Result<()> {
+    let mut rt = Runtime::new()?;
+
     let github = Github::new(
         "my-cool-user-agent/0.1.0",
         Credentials::Token("personal-access-token".into()),
       )?;
 
-      let username = get_username(&github)?;
+      let username = get_username(&mut rt, &github)?;
 
-      let fork = existing_fork(username.as_str(), &github, organisation, repository)?;
+      let fork = existing_fork(&mut rt, username.as_str(), &github, organisation, repository)?;
 
       let fork = if let Some(existing) = fork {
           existing
       } else {
-        create_fork(&github, organisation, repository)?
+        create_fork(&mut rt, &github, organisation, repository)?
       };
 
       //FIXME allow users to specify path
@@ -50,10 +52,7 @@ pub fn create_pr(organisation: &str, repository: &str) -> Result<()> {
       Ok(())
 }
 
-//FIXME why does user have to be static?
-fn existing_fork(user: &str, github: &Github, organisation: &str, repository: &str) -> Result<Option<Repo>> {
-    let mut rt = Runtime::new()?;
-
+fn existing_fork(rt: &mut Runtime, user: &str, github: &Github, organisation: &str, repository: &str) -> Result<Option<Repo>> {
     let options = ForkListOptions::builder().build();
     let mut forks = rt.block_on(
         github
@@ -71,10 +70,7 @@ fn existing_fork(user: &str, github: &Github, organisation: &str, repository: &s
     }
 }
 
-//FIXME can we share our rt?
-fn create_fork(github: &Github, organisation: &str, repository: &str) -> Result<Repo> {
-    let mut rt = Runtime::new()?;
-    
+fn create_fork(rt: &mut Runtime, github: &Github, organisation: &str, repository: &str) -> Result<Repo> {
     rt.block_on(
         github
             .repo(organisation, repository)
@@ -83,9 +79,7 @@ fn create_fork(github: &Github, organisation: &str, repository: &str) -> Result<
     )
 }
 
-fn get_username(github: &Github) -> Result<String> {
-    let mut rt = Runtime::new()?;
-    
+fn get_username(rt: &mut Runtime, github: &Github) -> Result<String> {
     rt.block_on(
         github
             .users()
