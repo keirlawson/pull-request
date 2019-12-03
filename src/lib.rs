@@ -1,6 +1,9 @@
 use futures::Stream;
 use tokio::runtime::current_thread::Runtime;
 use futures::future::Future;
+use rustygit::{Repository, types::GitUrl};
+use std::str::FromStr;
+use tempdir::TempDir;
 
 use hubcaps::repositories::{ForkListOptions, Repo};
 use hubcaps::{Credentials, Github, Result};
@@ -20,8 +23,15 @@ pub fn create_pr(organisation: &str, repository: &str) -> Result<()> {
       } else {
         create_fork(&github, organisation, repository)?
       };
-    
-      //clone fork
+
+      //FIXME allow users to specify path
+      let tmp_dir = TempDir::new("example")?;
+
+
+      //FIXME allow user to specify SSH or HTTPS
+      let url = GitUrl::from_str(&fork.ssh_url).expect("github returned malformed clone URL");
+
+      let repo = Repository::clone(url, tmp_dir.path()).unwrap();
     
       //check if upstream remote exists, if not add
     
