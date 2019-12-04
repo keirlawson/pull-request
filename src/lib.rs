@@ -8,6 +8,8 @@ use tempdir::TempDir;
 use hubcaps::repositories::{ForkListOptions, Repo};
 use hubcaps::{Credentials, Github, Result};
 
+const DEFAULT_UPSTREAM_REMOTE: &str = "upstream";
+
 pub fn create_pr(organisation: &str, repository: &str) -> Result<()> {
     let mut rt = Runtime::new()?;
 
@@ -35,17 +37,22 @@ pub fn create_pr(organisation: &str, repository: &str) -> Result<()> {
 
       let repo = Repository::clone(url, tmp_dir.path()).unwrap();
     
-      //check if upstream remote exists, if not add
+      //FIXME check if upstream remote exists
+
+      let upstream = GitUrl::from_str(format!("").as_str()).unwrap();
+      repo.add_remote(DEFAULT_UPSTREAM_REMOTE, &upstream).unwrap();
+
+      repo.fetch_remote(DEFAULT_UPSTREAM_REMOTE).unwrap();
     
-      //fetch upstream remote
-    
-      //create branch from upstream master
+      //FIXME take parameter of branch name
+      repo.create_branch_from_startpoint("somebranchnamehere", format!("{}/{}", DEFAULT_UPSTREAM_REMOTE, fork.default_branch).as_str()).unwrap();
     
       //had off to transformation
     
-      // add, commit
+      //FIXME need commit message
+      repo.commit_all().unwrap();
     
-      // push
+      repo.push().unwrap();
     
       // open PR
 
