@@ -50,7 +50,7 @@ pub fn create_pr(organisation: &str, repository: &str) -> Result<()> {
       //had off to transformation
     
       //FIXME need commit message
-      repo.commit_all().unwrap();
+      repo.commit_all("somecommitmessage").unwrap();
     
       repo.push().unwrap();
     
