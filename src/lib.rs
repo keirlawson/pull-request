@@ -6,7 +6,7 @@ use std::str::FromStr;
 use tempdir::TempDir;
 
 use hubcaps::repositories::{ForkListOptions, Repo};
-use hubcaps::{Credentials, Github, Result};
+use hubcaps::{Credentials, Github, Result, pulls::{PullOptions, Pull}};
 
 const DEFAULT_UPSTREAM_REMOTE: &str = "upstream";
 
@@ -57,6 +57,24 @@ pub fn create_pr(organisation: &str, repository: &str) -> Result<()> {
       // open PR
 
       Ok(())
+}
+
+fn open_pr(rt: &mut Runtime, github: &Github, organisation: &str, repository: &str) -> Result<Pull> {
+
+    //FIXME fill these in
+    let options = PullOptions {
+        title: String::from(""),
+        head: String::from(""),
+        body: None,
+        base: String::from("")
+    };
+
+    rt.block_on(
+        github
+            .repo(organisation, repository)
+            .pulls()
+            .create(&options)
+    )
 }
 
 fn existing_fork(rt: &mut Runtime, user: &str, github: &Github, organisation: &str, repository: &str) -> Result<Option<Repo>> {
