@@ -9,7 +9,7 @@ mod github;
 
 const DEFAULT_UPSTREAM_REMOTE: &str = "upstream";
 
-pub fn create_pr(organisation: &str, repository: &str) -> Result<Url> {
+pub fn create_pr(organisation: &str, repository: &str, branch_name: &str, commit_mesage: &str, pr_title: &str) -> Result<Url> {
     let mut github_client =
         github::GithubClient::init("my-cool-user-agent/0.1.0", "personal-access-token")?;
 
@@ -38,23 +38,21 @@ pub fn create_pr(organisation: &str, repository: &str) -> Result<Url> {
 
     repo.fetch_remote(DEFAULT_UPSTREAM_REMOTE).unwrap();
 
-    //FIXME take parameter of branch name
     repo.create_branch_from_startpoint(
-        "somebranchnamehere",
+        branch_name,
         format!("{}/{}", DEFAULT_UPSTREAM_REMOTE, fork.default_branch).as_str(),
     )
     .unwrap();
 
     //had off to transformation
 
-    //FIXME need commit message
-    repo.commit_all("somecommitmessage").unwrap();
+    repo.commit_all(commit_mesage).unwrap();
 
     repo.push().unwrap();
 
     // open PR
     let pull = github_client
-        .open_pr(organisation, repository, "sometitlehere")
+        .open_pr(organisation, repository, pr_title)
         .unwrap();
 
     let url = Url::parse(pull.url.as_str()).unwrap();
