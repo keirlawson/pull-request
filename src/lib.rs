@@ -2,6 +2,7 @@ use rustygit::{types::GitUrl, Repository};
 use std::str::FromStr;
 use tempdir::TempDir;
 use url::Url;
+use log::debug;
 
 use hubcaps::Result;
 
@@ -14,12 +15,14 @@ pub fn create_pr(organisation: &str, repository: &str, branch_name: &str, commit
         github::GithubClient::init("my-cool-user-agent/0.1.0", "personal-access-token")?;
 
     let username = github_client.get_username()?;
+    debug!("Retrieved username for github account: {}", username);
 
     let fork = github_client.existing_fork(username.as_str(), organisation, repository)?;
 
     let fork = if let Some(existing) = fork {
         existing
     } else {
+        debug!("No fork exists, forking");
         github_client.create_fork(organisation, repository)?
     };
 
