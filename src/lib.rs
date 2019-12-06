@@ -31,6 +31,7 @@ pub fn create_pr(organisation: &str, repository: &str, branch_name: &str, commit
 
     //FIXME allow user to specify SSH or HTTPS
     let url = GitUrl::from_str(&fork.ssh_url).expect("github returned malformed clone URL");
+    debug!("Cloning repo to {:?}", tmp_dir.path());
 
     let repo = Repository::clone(url, tmp_dir.path()).unwrap();
 
