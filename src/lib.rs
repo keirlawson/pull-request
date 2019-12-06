@@ -4,13 +4,14 @@ use futures::future::Future;
 use rustygit::{Repository, types::GitUrl};
 use std::str::FromStr;
 use tempdir::TempDir;
+use url::Url;
 
 use hubcaps::repositories::{ForkListOptions, Repo};
 use hubcaps::{Credentials, Github, Result, pulls::{PullOptions, Pull}};
 
 const DEFAULT_UPSTREAM_REMOTE: &str = "upstream";
 
-pub fn create_pr(organisation: &str, repository: &str) -> Result<()> {
+pub fn create_pr(organisation: &str, repository: &str) -> Result<Url> {
     let mut rt = Runtime::new()?;
 
     let github = Github::new(
@@ -55,15 +56,18 @@ pub fn create_pr(organisation: &str, repository: &str) -> Result<()> {
       repo.push().unwrap();
     
       // open PR
+      let pull = open_pr(&mut rt, &github, organisation, repository, "sometitlehere").unwrap();
 
-      Ok(())
+      let url = Url::parse(pull.url.as_str()).unwrap();
+
+      Ok(url)
 }
 
-fn open_pr(rt: &mut Runtime, github: &Github, organisation: &str, repository: &str) -> Result<Pull> {
+fn open_pr(rt: &mut Runtime, github: &Github, organisation: &str, repository: &str, title: &str) -> Result<Pull> {
 
     //FIXME fill these in
     let options = PullOptions {
-        title: String::from(""),
+        title: String::from(title),
         head: String::from(""),
         body: None,
         base: String::from("")
