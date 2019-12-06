@@ -4,9 +4,32 @@ use futures::Stream;
 
 
 use hubcaps::repositories::{ForkListOptions, Repo};
-use hubcaps::{Github, Result, pulls::{PullOptions, Pull}};
+use hubcaps::{Github, Credentials, Result, pulls::{PullOptions, Pull}};
 
-pub fn open_pr(rt: &mut Runtime, github: &Github, organisation: &str, repository: &str, title: &str) -> Result<Pull> {
+pub struct GithubClient {
+    rt: Runtime,
+    github: Github
+}
+
+impl GithubClient {
+    pub fn init(user_agent: &str, access_token: &str) -> Result<Self> {
+
+
+    let rt = Runtime::new()?;
+
+    let github = Github::new(
+        user_agent,
+        Credentials::Token(access_token.into()),
+      )?;
+
+        Ok(GithubClient {
+            rt,
+            github
+        })
+    }
+
+
+pub fn open_pr(&mut self, organisation: &str, repository: &str, title: &str) -> Result<Pull> {
 
     //FIXME fill these in
     let options = PullOptions {
@@ -16,18 +39,18 @@ pub fn open_pr(rt: &mut Runtime, github: &Github, organisation: &str, repository
         base: String::from("")
     };
 
-    rt.block_on(
-        github
+    self.rt.block_on(
+        self.github
             .repo(organisation, repository)
             .pulls()
             .create(&options)
     )
 }
 
-pub fn existing_fork(rt: &mut Runtime, user: &str, github: &Github, organisation: &str, repository: &str) -> Result<Option<Repo>> {
+pub fn existing_fork(&mut self, user: &str, organisation: &str, repository: &str) -> Result<Option<Repo>> {
     let options = ForkListOptions::builder().build();
-    let mut forks = rt.block_on(
-        github
+    let mut forks = self.rt.block_on(
+        self.github
             .repo(organisation, repository)
             .forks()
             .iter(&options)
@@ -42,20 +65,22 @@ pub fn existing_fork(rt: &mut Runtime, user: &str, github: &Github, organisation
     }
 }
 
-pub fn create_fork(rt: &mut Runtime, github: &Github, organisation: &str, repository: &str) -> Result<Repo> {
-    rt.block_on(
-        github
+pub fn create_fork(&mut self, organisation: &str, repository: &str) -> Result<Repo> {
+    self.rt.block_on(
+        self.github
             .repo(organisation, repository)
             .forks()
             .create()
     )
 }
 
-pub fn get_username(rt: &mut Runtime, github: &Github) -> Result<String> {
-    rt.block_on(
-        github
+pub fn get_username(&mut self) -> Result<String> {
+    self.rt.block_on(
+        self.github
             .users()
             .authenticated()
             .map(move |authed| authed.login)
     )
+}
+
 }

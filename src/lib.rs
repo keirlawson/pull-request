@@ -1,31 +1,27 @@
-use tokio::runtime::current_thread::Runtime;
 use rustygit::{Repository, types::GitUrl};
 use std::str::FromStr;
 use tempdir::TempDir;
 use url::Url;
 
-use hubcaps::{Credentials, Github, Result};
+use hubcaps::{Result};
 
 mod github;
 
 const DEFAULT_UPSTREAM_REMOTE: &str = "upstream";
 
 pub fn create_pr(organisation: &str, repository: &str) -> Result<Url> {
-    let mut rt = Runtime::new()?;
 
-    let github = Github::new(
-        "my-cool-user-agent/0.1.0",
-        Credentials::Token("personal-access-token".into()),
-      )?;
 
-      let username = github::get_username(&mut rt, &github)?;
+    let mut github_client = github::GithubClient::init("my-cool-user-agent/0.1.0", "personal-access-token")?;
 
-      let fork = github::existing_fork(&mut rt, username.as_str(), &github, organisation, repository)?;
+      let username = github_client.get_username()?;
+
+      let fork = github_client.existing_fork(username.as_str(), organisation, repository)?;
 
       let fork = if let Some(existing) = fork {
           existing
       } else {
-        github::create_fork(&mut rt, &github, organisation, repository)?
+        github_client.create_fork(organisation, repository)?
       };
 
       //FIXME allow users to specify path
@@ -55,7 +51,7 @@ pub fn create_pr(organisation: &str, repository: &str) -> Result<Url> {
       repo.push().unwrap();
     
       // open PR
-      let pull = github::open_pr(&mut rt, &github, organisation, repository, "sometitlehere").unwrap();
+      let pull = github_client.open_pr(organisation, repository, "sometitlehere").unwrap();
 
       let url = Url::parse(pull.url.as_str()).unwrap();
 
