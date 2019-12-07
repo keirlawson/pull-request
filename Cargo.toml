@@ -14,3 +14,13 @@ rustygit = "0.2.1"
 tempdir = "0.3"
 url = "2"
 log = "0.4"
+envy = { version = "0.4", optional = true }
+
+[features]
+default = []
+cli = ["envy"]
+
+[[bin]]
+name = "pullreq"
+path = "src/main.rs"
+required-features = ["cli"]
