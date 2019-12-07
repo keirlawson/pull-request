@@ -10,9 +10,10 @@ mod github;
 
 const DEFAULT_UPSTREAM_REMOTE: &str = "upstream";
 
-pub fn create_pr(organisation: &str, repository: &str, branch_name: &str, commit_mesage: &str, pr_title: &str) -> Result<Url> {
+pub fn create_pr(organisation: &str, repository: &str, branch_name: &str, commit_mesage: &str, pr_title: &str, github_token: &str) -> Result<Url> {
+    //FIXME pass in user agent
     let mut github_client =
-        github::GithubClient::init("my-cool-user-agent/0.1.0", "personal-access-token")?;
+        github::GithubClient::init("my-cool-user-agent/0.1.0", github_token)?;
 
     let username = github_client.get_username()?;
     debug!("Retrieved username for github account: {}", username);
