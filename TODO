@@ -1,3 +1,9 @@
+* validate passed args
 * handle all errors
 * add logging, configurable by consumers
 * make front end, use envy to ready git token
+* Support GHE
+
+Failure scenario:
+Org or repo don't exist
+Repo is empty (github doesn't allow forking)

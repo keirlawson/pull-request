@@ -11,6 +11,8 @@ mod github;
 const DEFAULT_UPSTREAM_REMOTE: &str = "upstream";
 
 pub fn create_pr(organisation: &str, repository: &str, branch_name: &str, commit_mesage: &str, pr_title: &str, github_token: &str) -> Result<Url> {
+    //FIXME validate that strings are not empty
+
     //FIXME pass in user agent
     let mut github_client =
         github::GithubClient::init("my-cool-user-agent/0.1.0", github_token)?;
@@ -38,10 +40,12 @@ pub fn create_pr(organisation: &str, repository: &str, branch_name: &str, commit
 
     //FIXME check if upstream remote exists
 
-    let upstream = GitUrl::from_str(format!("").as_str()).unwrap();
+    //FIXME support ssh URLs as well, what about custom githubs?
+    let upstream = GitUrl::from_str(format!("https://github.com/{}/{}.git", organisation, repository).as_str()).unwrap();
     repo.add_remote(DEFAULT_UPSTREAM_REMOTE, &upstream).unwrap();
 
     repo.fetch_remote(DEFAULT_UPSTREAM_REMOTE).unwrap();
+    debug!("Fetched upstream remote");
 
     repo.create_branch_from_startpoint(
         branch_name,
@@ -51,9 +55,12 @@ pub fn create_pr(organisation: &str, repository: &str, branch_name: &str, commit
 
     //had off to transformation
 
-    repo.commit_all(commit_mesage).unwrap();
+    //FIXME update rusty-git to add quotes to message
+    repo.commit_all(commit_mesage).map_err(|e| eprintln!("{:?}", e)).unwrap();
+    println!("committed");
 
     repo.push().unwrap();
+    debug!("Pushed changes to fork");
 
     // open PR
     let pull = github_client
