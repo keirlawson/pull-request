@@ -4,8 +4,6 @@ version = "0.1.0"
 authors = ["Keir Lawson <keirlawson@gmail.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 hubcaps = { git = "https://github.com/keirlawson/hubcaps", branch = "repo-forking" }
 futures = "0.1"
@@ -15,10 +13,13 @@ tempdir = "0.3"
 url = "2"
 log = "0.4"
 envy = { version = "0.4", optional = true }
+structopt = { version = "0.3", optional = true }
+pretty_env_logger = { version = "0.3.1", optional = true }
+human-panic = { version = "1.0.1", optional = true }
 
 [features]
 default = []
-cli = ["envy"]
+cli = ["envy", "structopt", "pretty_env_logger", "human-panic"]
 
 [[bin]]
 name = "pullreq"
