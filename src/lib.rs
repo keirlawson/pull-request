@@ -54,8 +54,8 @@ pub fn create_pr(organisation: &str, repository: &str, branch_name: &str, commit
     .unwrap();
 
     //had off to transformation
+    //FIXME actually do some changes
 
-    //FIXME update rusty-git to add quotes to message
     //FIXME update rusty-git to ensure errors are captured
     repo.add(vec!(".")).unwrap();
     repo.commit_all(commit_mesage).map_err(|e| eprintln!("{:?}", e)).unwrap();
