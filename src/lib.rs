@@ -56,6 +56,7 @@ pub fn create_pr(organisation: &str, repository: &str, branch_name: &str, commit
     //had off to transformation
 
     //FIXME update rusty-git to add quotes to message
+    //FIXME update rusty-git to ensure errors are captured
     repo.commit_all(commit_mesage).map_err(|e| eprintln!("{:?}", e)).unwrap();
     println!("committed");
 
