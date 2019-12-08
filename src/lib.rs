@@ -1,6 +1,6 @@
 use rustygit::{types::GitUrl, Repository};
 use std::str::FromStr;
-use tempdir::TempDir;
+use tempfile;
 use url::Url;
 use log::debug;
 
@@ -30,7 +30,7 @@ pub fn create_pr(organisation: &str, repository: &str, branch_name: &str, commit
     };
 
     //FIXME allow users to specify path
-    let tmp_dir = TempDir::new("example")?;
+    let tmp_dir = tempfile::tempdir()?;
 
     //FIXME allow user to specify SSH or HTTPS
     let url = GitUrl::from_str(&fork.ssh_url).expect("github returned malformed clone URL");

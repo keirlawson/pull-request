@@ -9,7 +9,7 @@ hubcaps = { git = "https://github.com/keirlawson/hubcaps", branch = "repo-forkin
 futures = "0.1"
 tokio = "0.1"
 rustygit = "0.2.1"
-tempdir = "0.3"
+tempfile = "3"
 url = "2"
 log = "0.4"
 structopt = { version = "0.3", optional = true }
