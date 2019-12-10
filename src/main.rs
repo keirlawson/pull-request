@@ -4,7 +4,15 @@ fn main() {
     pretty_env_logger::init();
     let github_token = env::var("GITHUB_TOKEN").unwrap();
 
-    match pull_request::create_pr("RustyGitTestOrg", "ForkMe", "thebranch1", "test commit", "", &github_token) {
+    let options = pull_request::PullRequestOptions {
+        organisation: "RustyGitTestOrg",
+        repository: "ForkMe",
+        branch_name: "thebranch1",
+        commit_mesage: "test commit",
+        pr_title: "test PR",
+    };
+
+    match pull_request::create_pr(&github_token, options) {
         Ok(_) => println!("success"),
         Err(e) => eprintln!("{:?}", e)
     }
