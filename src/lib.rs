@@ -4,6 +4,7 @@ use tempfile;
 use url::Url;
 use log::debug;
 use github::GithubClient;
+use std::path::Path;
 
 use hubcaps::Result;
 
@@ -20,23 +21,29 @@ pub struct PullRequestOptions<'a> {
 }
 
 // FIXME Use traits to make params more flexible
-pub fn create_enterprise_pr(github_token: &str, host: &str, options: &PullRequestOptions) -> Result<Url> {
+pub fn create_enterprise_pr<F>(github_token: &str, host: &str, options: &PullRequestOptions, transform: F) -> Result<Url> 
+where F: Fn(&Path) -> Result<()>
+{
     //FIXME pass in user agent
     let github_client =
         GithubClient::init("my-cool-user-agent/0.1.0", github_token, Some(host))?;
 
-    pr(github_client, options)
+    pr(github_client, options, transform)
 }
 
-pub fn create_pr(github_token: &str, options: &PullRequestOptions) -> Result<Url> {
+pub fn create_pr<F>(github_token: &str, options: &PullRequestOptions, transform: F) -> Result<Url> 
+where F: Fn(&Path) -> Result<()>
+{
     //FIXME pass in user agent
     let github_client =
         GithubClient::init("my-cool-user-agent/0.1.0", github_token, None)?;
 
-    pr(github_client, options)
+    pr(github_client, options, transform)
 }
 
-fn pr(mut github_client: GithubClient, options: &PullRequestOptions) -> Result<Url> {
+fn pr<F>(mut github_client: GithubClient, options: &PullRequestOptions, transform: F) -> Result<Url>
+    where F: Fn(&Path) -> Result<()>
+{
     //FIXME validate that strings are not empty
 
     let username = github_client.get_username()?;
@@ -76,7 +83,8 @@ fn pr(mut github_client: GithubClient, options: &PullRequestOptions) -> Result<U
     .unwrap();
 
     //had off to transformation
-    //FIXME actually do some changes
+    //FIXME actually do some change
+    transform(tmp_dir.path()).unwrap();
 
     //FIXME update rusty-git to ensure errors are captured
     repo.add(vec!(".")).unwrap();

@@ -1,4 +1,5 @@
 use std::env;
+use std::path::Path;
 fn main() {
     human_panic::setup_panic!();
     pretty_env_logger::init();
@@ -12,7 +13,10 @@ fn main() {
         pr_title: "test PR",
     };
 
-    match pull_request::create_pr(&github_token, &options) {
+    //FIXME do something here
+    let transform = |p : &Path| Ok(());
+
+    match pull_request::create_pr(&github_token, &options, transform) {
         Ok(_) => println!("success"),
         Err(e) => eprintln!("{:?}", e)
     }
