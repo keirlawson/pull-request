@@ -1,5 +1,7 @@
 use std::env;
 use std::path::Path;
+
+const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 fn main() {
     human_panic::setup_panic!();
     pretty_env_logger::init();
@@ -16,7 +18,7 @@ fn main() {
     //FIXME do something here
     let transform = |p : &Path| Ok(());
 
-    match pull_request::create_pr(&github_token, "my-cool-user-agent/0.1.0", &options, transform) {
+    match pull_request::create_pr(&github_token, USER_AGENT, &options, transform) {
         Ok(_) => println!("success"),
         Err(e) => eprintln!("{:?}", e)
     }

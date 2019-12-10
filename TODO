@@ -3,6 +3,7 @@
 * make front end
 * Support GHE
 * allow options to be specified in a TOML file
+* add README
 
 Failure scenario:
 Org or repo don't exist
