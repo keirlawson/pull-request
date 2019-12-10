@@ -96,9 +96,8 @@ fn pr<F>(mut github_client: GithubClient, options: &PullRequestOptions, transfor
         options.branch_name,
         format!("{}/{}", DEFAULT_UPSTREAM_REMOTE, fork.default_branch).as_str(),
     )?;
+    //FIXME set branch upstream
 
-    //had off to transformation
-    //FIXME actually do some change
     transform(tmp_dir.path())?;
 
     //FIXME update rusty-git to ensure errors are captured
