@@ -14,10 +14,15 @@ pub struct GithubClient {
 }
 
 impl GithubClient {
-    pub fn init(user_agent: &str, access_token: &str) -> Result<Self> {
+    pub fn init(user_agent: &str, access_token: &str, host: Option<&str>) -> Result<Self> {
         let rt = Runtime::new()?;
 
-        let github = Github::new(user_agent, Credentials::Token(access_token.into()))?;
+        let credential = Credentials::Token(access_token.into());
+        let github = if let Some(host) = host {
+            Github::host(host, user_agent, credential)
+        } else {
+            Github::new(user_agent, credential)
+        }?;
 
         Ok(GithubClient { rt, github })
     }

@@ -12,7 +12,7 @@ fn main() {
         pr_title: "test PR",
     };
 
-    match pull_request::create_pr(&github_token, options) {
+    match pull_request::create_pr(&github_token, &options) {
         Ok(_) => println!("success"),
         Err(e) => eprintln!("{:?}", e)
     }
