@@ -1,9 +1,15 @@
 * validate passed args
 * handle all errors
-* make front end
 * Support GHE
-* allow options to be specified in a TOML file
 * add README
+
+CLI
+
+* make front end
+* allow options to be specified in a TOML file
+
+Long term
+
 * what does dry-running look like?
 * multi-repo support
 
