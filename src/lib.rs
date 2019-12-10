@@ -94,7 +94,7 @@ fn pr<F>(mut github_client: GithubClient, options: &PullRequestOptions, transfor
 
     let base_branch = github_client.default_branch(options.organisation, options.repository)?;
     let pull = github_client
-        .open_pr(options.organisation, options.repository, options.pr_title, base_branch.as_str())
+        .open_pr(options.organisation, options.repository, options.pr_title, base_branch.as_str(), &username, options.branch_name)
         .unwrap();
     debug!("Opened PR");
 

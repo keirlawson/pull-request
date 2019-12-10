@@ -27,11 +27,10 @@ impl GithubClient {
         Ok(GithubClient { rt, github })
     }
 
-    pub fn open_pr(&mut self, organisation: &str, repository: &str, title: &str, base_branch: &str) -> Result<Pull> {
-        //FIXME fill these in
+    pub fn open_pr(&mut self, organisation: &str, repository: &str, title: &str, base_branch: &str, username: &str, head_branch: &str) -> Result<Pull> {
         let options = PullOptions {
             title: String::from(title),
-            head: String::from(""),
+            head: format!("{}:{}", username, head_branch),
             body: None,
             base: String::from(base_branch),
         };
