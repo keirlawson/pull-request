@@ -68,6 +68,7 @@ pub fn create_pr(organisation: &str, repository: &str, branch_name: &str, commit
     let pull = github_client
         .open_pr(organisation, repository, pr_title)
         .unwrap();
+    debug!("Opened PR");
 
     let url = Url::parse(pull.url.as_str()).unwrap();
 

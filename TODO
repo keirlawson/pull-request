@@ -1,7 +1,6 @@
 * validate passed args
 * handle all errors
-* add logging, configurable by consumers
-* make front end, use envy to ready git token
+* make front end
 * Support GHE
 
 Failure scenario:
