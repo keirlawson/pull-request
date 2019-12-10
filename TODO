@@ -4,6 +4,8 @@
 * Support GHE
 * allow options to be specified in a TOML file
 * add README
+* what does dry-running look like?
+* multi-repo support
 
 Failure scenario:
 Org or repo don't exist
