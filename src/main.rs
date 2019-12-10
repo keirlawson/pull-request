@@ -16,7 +16,7 @@ fn main() {
     //FIXME do something here
     let transform = |p : &Path| Ok(());
 
-    match pull_request::create_pr(&github_token, &options, transform) {
+    match pull_request::create_pr(&github_token, "my-cool-user-agent/0.1.0", &options, transform) {
         Ok(_) => println!("success"),
         Err(e) => eprintln!("{:?}", e)
     }

@@ -21,22 +21,20 @@ pub struct PullRequestOptions<'a> {
 }
 
 // FIXME Use traits to make params more flexible
-pub fn create_enterprise_pr<F>(github_token: &str, host: &str, options: &PullRequestOptions, transform: F) -> Result<Url> 
+pub fn create_enterprise_pr<F>(github_token: &str, user_agent: &str, host: &str, options: &PullRequestOptions, transform: F) -> Result<Url> 
 where F: Fn(&Path) -> Result<()>
 {
-    //FIXME pass in user agent
     let github_client =
-        GithubClient::init("my-cool-user-agent/0.1.0", github_token, Some(host))?;
+        GithubClient::init(user_agent, github_token, Some(host))?;
 
     pr(github_client, options, transform)
 }
 
-pub fn create_pr<F>(github_token: &str, options: &PullRequestOptions, transform: F) -> Result<Url> 
+pub fn create_pr<F>(github_token: &str, user_agent: &str, options: &PullRequestOptions, transform: F) -> Result<Url> 
 where F: Fn(&Path) -> Result<()>
 {
-    //FIXME pass in user agent
     let github_client =
-        GithubClient::init("my-cool-user-agent/0.1.0", github_token, None)?;
+        GithubClient::init(user_agent, github_token, None)?;
 
     pr(github_client, options, transform)
 }
