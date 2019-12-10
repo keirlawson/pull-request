@@ -23,6 +23,7 @@ pub struct PullRequestOptions<'a> {
     pub pr_title: &'a str,
 }
 
+//FIXME add messages from sources
 #[derive(Debug, Error)]
 pub enum PullRequestError {
     #[error("Error calling GitHub")]
