@@ -27,13 +27,13 @@ impl GithubClient {
         Ok(GithubClient { rt, github })
     }
 
-    pub fn open_pr(&mut self, organisation: &str, repository: &str, title: &str) -> Result<Pull> {
+    pub fn open_pr(&mut self, organisation: &str, repository: &str, title: &str, base_branch: &str) -> Result<Pull> {
         //FIXME fill these in
         let options = PullOptions {
             title: String::from(title),
             head: String::from(""),
             body: None,
-            base: String::from(""),
+            base: String::from(base_branch),
         };
 
         self.rt.block_on(
@@ -70,6 +70,10 @@ impl GithubClient {
     pub fn create_fork(&mut self, organisation: &str, repository: &str) -> Result<Repo> {
         self.rt
             .block_on(self.github.repo(organisation, repository).forks().create())
+    }
+
+    pub fn default_branch(&mut self, organisation: &str, repository: &str) -> Result<String> {
+        self.rt.block_on(self.github.repo(organisation, repository).get()).map(|r| r.default_branch)
     }
 
     pub fn get_username(&mut self) -> Result<String> {

@@ -87,14 +87,14 @@ fn pr<F>(mut github_client: GithubClient, options: &PullRequestOptions, transfor
     //FIXME update rusty-git to ensure errors are captured
     repo.add(vec!(".")).unwrap();
     repo.commit_all(options.commit_mesage).map_err(|e| eprintln!("{:?}", e)).unwrap();
-    println!("committed");
+    println!("committed");//FIXME remove this line after debugging
 
     repo.push().unwrap();
     debug!("Pushed changes to fork");
 
-    // open PR
+    let base_branch = github_client.default_branch(options.organisation, options.repository)?;
     let pull = github_client
-        .open_pr(options.organisation, options.repository, options.pr_title)
+        .open_pr(options.organisation, options.repository, options.pr_title, base_branch.as_str())
         .unwrap();
     debug!("Opened PR");
 
