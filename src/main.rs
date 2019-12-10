@@ -17,7 +17,6 @@ fn main() {
         pr_title: "test PR",
     };
 
-    //FIXME do something here
     let transform = |p : &Path| {
         let epoch = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
         File::create(p.join(format!("{}", epoch))).unwrap(); 
