@@ -12,7 +12,7 @@ fn main() {
     let options = pull_request::PullRequestOptions {
         organisation: "RustyGitTestOrg",
         repository: "ForkMe",
-        branch_name: "thebranch1",
+        branch_name: "thebranch3",
         commit_mesage: "test commit",
         pr_title: "test PR",
     };

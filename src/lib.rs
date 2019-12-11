@@ -102,12 +102,11 @@ fn pr<F>(mut github_client: GithubClient, options: &PullRequestOptions, transfor
     //FIXME update rusty-git to ensure errors are captured
     repo.add(vec!("."))?;
     repo.commit_all(options.commit_mesage)?;
-    println!("committed");//FIXME remove this line after debugging
 
 
     //FIXME should do this validation at the start
     let upstream_branch = BranchName::from_str(options.branch_name)?;
-    repo.push_to_upstream(DEFAULT_UPSTREAM_REMOTE, &upstream_branch)?;
+    repo.push_to_upstream("origin", &upstream_branch)?;
     debug!("Pushed changes to fork");
 
     let base_branch = github_client.default_branch(options.organisation, options.repository)?;
