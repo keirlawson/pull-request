@@ -7,7 +7,6 @@ use hubcaps::{
     pulls::{Pull, PullOptions},
     Credentials, Github, Result,
 };
-
 pub struct GithubClient {
     rt: Runtime,
     github: Github,
@@ -27,7 +26,15 @@ impl GithubClient {
         Ok(GithubClient { rt, github })
     }
 
-    pub fn open_pr(&mut self, organisation: &str, repository: &str, title: &str, base_branch: &str, username: &str, head_branch: &str) -> Result<Pull> {
+    pub fn open_pr(
+        &mut self,
+        organisation: &str,
+        repository: &str,
+        title: &str,
+        base_branch: &str,
+        username: &str,
+        head_branch: &str,
+    ) -> Result<Pull> {
         let options = PullOptions {
             title: String::from(title),
             head: format!("{}:{}", username, head_branch),
@@ -72,7 +79,9 @@ impl GithubClient {
     }
 
     pub fn default_branch(&mut self, organisation: &str, repository: &str) -> Result<String> {
-        self.rt.block_on(self.github.repo(organisation, repository).get()).map(|r| r.default_branch)
+        self.rt
+            .block_on(self.github.repo(organisation, repository).get())
+            .map(|r| r.default_branch)
     }
 
     pub fn get_username(&mut self) -> Result<String> {
