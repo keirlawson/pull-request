@@ -1,4 +1,4 @@
-use rustygit::{types::GitUrl, Repository, error::GitError as RustyGitError};
+use rustygit::{types::{GitUrl, BranchName}, Repository, error::GitError as RustyGitError};
 use std::str::FromStr;
 use tempfile;
 use url::{Url, ParseError};
@@ -78,7 +78,7 @@ fn pr<F>(mut github_client: GithubClient, options: &PullRequestOptions, transfor
     let tmp_dir = tempfile::tempdir()?;
 
     //FIXME allow user to specify SSH or HTTPS
-    let url = GitUrl::from_str(&fork.ssh_url).expect("github returned malformed clone URL");
+    let url = GitUrl::from_str(&fork.clone_url).expect("github returned malformed clone URL");
     debug!("Cloning repo to {:?}", tmp_dir.path());
 
     let repo = Repository::clone(url, tmp_dir.path())?;
@@ -96,7 +96,6 @@ fn pr<F>(mut github_client: GithubClient, options: &PullRequestOptions, transfor
         options.branch_name,
         format!("{}/{}", DEFAULT_UPSTREAM_REMOTE, fork.default_branch).as_str(),
     )?;
-    //FIXME set branch upstream
 
     transform(tmp_dir.path())?;
 
@@ -105,7 +104,10 @@ fn pr<F>(mut github_client: GithubClient, options: &PullRequestOptions, transfor
     repo.commit_all(options.commit_mesage)?;
     println!("committed");//FIXME remove this line after debugging
 
-    repo.push()?;
+
+    //FIXME should do this validation at the start
+    let upstream_branch = BranchName::from_str(options.branch_name)?;
+    repo.push_to_upstream(DEFAULT_UPSTREAM_REMOTE, &upstream_branch)?;
     debug!("Pushed changes to fork");
 
     let base_branch = github_client.default_branch(options.organisation, options.repository)?;

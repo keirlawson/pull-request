@@ -8,7 +8,7 @@ edition = "2018"
 hubcaps = { git = "https://github.com/keirlawson/hubcaps", branch = "repo-forking" }
 futures = "0.1"
 tokio = "0.1"
-rustygit = "0.2.2"
+rustygit = "0.2.3"
 tempfile = "3"
 url = "2"
 log = "0.4"
