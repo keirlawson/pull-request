@@ -125,7 +125,7 @@ where
     //FIXME update rusty-git to ensure errors are captured
     repo.add(vec!["."])?;
     repo.commit_all(options.commit_mesage)?;
-q
+
     //FIXME should do this validation at the start
     let upstream_branch = BranchName::from_str(options.branch_name)?;
     repo.push_to_upstream("origin", &upstream_branch)?;
