@@ -101,6 +101,7 @@ where
 
     //FIXME check if upstream remote exists
 
+    //FIXME support https URLs as well
     let upstream = GitUrl::from_str(
         format!(
             "git@{}:{}/{}.git",
