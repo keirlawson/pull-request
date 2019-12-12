@@ -7,6 +7,9 @@ use hubcaps::{
     pulls::{Pull, PullOptions},
     Credentials, Github, Result,
 };
+
+const DEFAULT_GITHUB_API_ENDPOINT: &str = "https://api.github.com";
+
 pub struct GithubClient {
     rt: Runtime,
     github: Github,
@@ -23,7 +26,7 @@ impl GithubClient {
             gh_api_endpoint = api_endpoint.to_string();
             Github::host(api_endpoint, user_agent, credential)
         } else {
-            gh_api_endpoint = String::from("https://api.github.com");
+            gh_api_endpoint = String::from(DEFAULT_GITHUB_API_ENDPOINT);
             Github::new(user_agent, credential)
         }?;
 
@@ -114,5 +117,47 @@ impl GithubClient {
         })
         .0
         .to_string()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_host_works_with_gh_dot_com() {
+        let client = get_client_with_endpoint(String::from("https://api.github.com"));
+        assert_eq!(String::from("github.com"), client.get_host());
+    }
+
+    #[test]
+    fn test_get_host_works_with_ghe() {
+        let client =
+            get_client_with_endpoint(String::from("https://github.awesomecompany.com/api/v3"));
+        assert_eq!(String::from("github.awesomecompany.com"), client.get_host());
+    }
+
+    #[test]
+    fn test_get_host_works_with_weird_urls() {
+        let client = get_client_with_endpoint(String::from(
+            "https://api.github.anothercompany.com.br/api/v2/gh/really/long/url?name=A",
+        ));
+        assert_eq!(
+            String::from("github.anothercompany.com.br"),
+            client.get_host()
+        );
+    }
+
+    fn get_client_with_endpoint(endpoint: String) -> GithubClient {
+        let rt = Runtime::new().unwrap();
+
+        let credential = Credentials::Token(String::from("TOKEN TOKEN TOKEN"));
+        let github = Github::new("Testing", credential).unwrap();
+
+        GithubClient {
+            rt,
+            github,
+            api_endpoint: endpoint,
+        }
     }
 }
