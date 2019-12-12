@@ -10,20 +10,28 @@ use hubcaps::{
 pub struct GithubClient {
     rt: Runtime,
     github: Github,
+    api_endpoint: String,
 }
 
 impl GithubClient {
-    pub fn init(user_agent: &str, access_token: &str, host: Option<&str>) -> Result<Self> {
+    pub fn init(user_agent: &str, access_token: &str, api_endpoint: Option<&str>) -> Result<Self> {
         let rt = Runtime::new()?;
 
         let credential = Credentials::Token(access_token.into());
-        let github = if let Some(host) = host {
-            Github::host(host, user_agent, credential)
+        let gh_api_endpoint: String;
+        let github = if let Some(api_endpoint) = api_endpoint {
+            gh_api_endpoint = api_endpoint.to_string();
+            Github::host(api_endpoint, user_agent, credential)
         } else {
+            gh_api_endpoint = String::from("https://api.github.com");
             Github::new(user_agent, credential)
         }?;
 
-        Ok(GithubClient { rt, github })
+        Ok(GithubClient {
+            rt,
+            github,
+            api_endpoint: gh_api_endpoint,
+        })
     }
 
     pub fn open_pr(
@@ -91,5 +99,20 @@ impl GithubClient {
                 .authenticated()
                 .map(move |authed| authed.login),
         )
+    }
+
+    pub fn get_host(&self) -> String {
+        let host = self
+            .api_endpoint
+            .replace("http://", "")
+            .replace("https://", "")
+            .replace("api.", "");
+
+        host.split_at(match host.find("/") {
+            Some(position) => position,
+            None => host.len(),
+        })
+        .0
+        .to_string()
     }
 }
