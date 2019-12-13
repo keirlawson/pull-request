@@ -127,14 +127,14 @@ mod tests {
     #[test]
     fn test_get_host_works_with_gh_dot_com() {
         let client = get_client_with_endpoint(String::from("https://api.github.com"));
-        assert_eq!(String::from("github.com"), client.get_host());
+        assert_eq!("github.com", client.get_host());
     }
 
     #[test]
     fn test_get_host_works_with_ghe() {
         let client =
             get_client_with_endpoint(String::from("https://github.awesomecompany.com/api/v3"));
-        assert_eq!(String::from("github.awesomecompany.com"), client.get_host());
+        assert_eq!("github.awesomecompany.com", client.get_host());
     }
 
     #[test]
@@ -142,10 +142,7 @@ mod tests {
         let client = get_client_with_endpoint(String::from(
             "https://api.github.anothercompany.com.br/api/v2/gh/really/long/url?name=A",
         ));
-        assert_eq!(
-            String::from("github.anothercompany.com.br"),
-            client.get_host()
-        );
+        assert_eq!("github.anothercompany.com.br", client.get_host());
     }
 
     fn get_client_with_endpoint(endpoint: String) -> GithubClient {
