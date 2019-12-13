@@ -46,14 +46,14 @@ type Result<T> = stdResult<T, PullRequestError>;
 pub fn create_enterprise_pr<F>(
     github_token: &str,
     user_agent: &str,
-    host: &str,
+    api_endpoint: &str,
     options: &PullRequestOptions,
     transform: F,
 ) -> Result<Url>
 where
     F: Fn(&Path) -> Result<()>,
 {
-    let github_client = GithubClient::init(user_agent, github_token, Some(host))?;
+    let github_client = GithubClient::init(user_agent, github_token, Some(api_endpoint))?;
 
     pr(github_client, options, transform)
 }
@@ -94,19 +94,20 @@ where
     //FIXME allow users to specify path
     let tmp_dir = tempfile::tempdir()?;
 
-    //FIXME allow user to specify SSH or HTTPS
-    let url = GitUrl::from_str(&fork.clone_url).expect("github returned malformed clone URL");
+    let url = GitUrl::from_str(&fork.ssh_url).expect("github returned malformed clone URL");
     debug!("Cloning repo to {:?}", tmp_dir.path());
 
     let repo = Repository::clone(url, tmp_dir.path())?;
 
     //FIXME check if upstream remote exists
 
-    //FIXME support ssh URLs as well, what about custom githubs?
+    //FIXME support https URLs as well
     let upstream = GitUrl::from_str(
         format!(
-            "https://github.com/{}/{}.git",
-            options.organisation, options.repository
+            "git@{}:{}/{}.git",
+            github_client.get_host(),
+            options.organisation,
+            options.repository
         )
         .as_str(),
     )?;
