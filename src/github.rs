@@ -1,6 +1,7 @@
 use futures::future::Future;
 use futures::Stream;
 use tokio::runtime::current_thread::Runtime;
+use rustygit::types::BranchName;
 
 use hubcaps::repositories::{ForkListOptions, Repo};
 use hubcaps::{
@@ -44,7 +45,7 @@ impl GithubClient {
         title: &str,
         base_branch: &str,
         username: &str,
-        head_branch: &str,
+        head_branch: &BranchName,
     ) -> Result<Pull> {
         let options = PullOptions {
             title: String::from(title),

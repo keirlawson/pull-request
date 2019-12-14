@@ -2,6 +2,9 @@ use std::env;
 use std::fs::File;
 use std::path::Path;
 use std::time::SystemTime;
+use rustygit::types::BranchName;
+use std::str::FromStr;
+//FIXME re-export BranchName so consumers don't need to depend on rustygit
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 fn main() {
@@ -12,7 +15,7 @@ fn main() {
     let options = pull_request::PullRequestOptions {
         organisation: "RustyGitTestOrg",
         repository: "ForkMe",
-        branch_name: "thebranch3",
+        branch_name: BranchName::from_str("thebranch3").unwrap(),
         commit_mesage: "test commit",
         pr_title: "test PR",
     };

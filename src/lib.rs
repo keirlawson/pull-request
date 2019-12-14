@@ -22,7 +22,7 @@ const DEFAULT_UPSTREAM_REMOTE: &str = "upstream";
 pub struct PullRequestOptions<'a> {
     pub organisation: &'a str,
     pub repository: &'a str,
-    pub branch_name: &'a str,
+    pub branch_name: BranchName,
     pub commit_mesage: &'a str,
     pub pr_title: &'a str,
 }
@@ -108,7 +108,7 @@ fn prepare_fork(github_client: &mut GithubClient, options: &PullRequestOptions, 
     debug!("Fetched upstream remote");
 
     repo.create_branch_from_startpoint(
-        options.branch_name,
+        &options.branch_name,
         format!("{}/{}", DEFAULT_UPSTREAM_REMOTE, fork.default_branch).as_str(),
     )?;
 
@@ -120,9 +120,7 @@ fn submit_pr(repo: &Repository, github_client: &mut GithubClient, options: &Pull
     repo.add(vec!["."])?;
     repo.commit_all(options.commit_mesage)?;
 
-    //FIXME should do this validation at the start
-    let upstream_branch = BranchName::from_str(options.branch_name)?;
-    repo.push_to_upstream("origin", &upstream_branch)?;
+    repo.push_to_upstream("origin", &options.branch_name)?;
     debug!("Pushed changes to fork");
 
     let base_branch = github_client.default_branch(options.organisation, options.repository)?;
@@ -132,7 +130,7 @@ fn submit_pr(repo: &Repository, github_client: &mut GithubClient, options: &Pull
         options.pr_title,
         base_branch.as_str(),
         &username,
-        options.branch_name,
+        &options.branch_name,
     )?;
     debug!("Opened PR");
 
