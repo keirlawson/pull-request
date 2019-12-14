@@ -72,17 +72,11 @@ where
     pr(github_client, options, transform)
 }
 
-fn pr<F>(mut github_client: GithubClient, options: &PullRequestOptions, transform: F) -> Result<Url>
-where
-    F: Fn(&Path) -> Result<()>,
-{
+fn prepare_fork(github_client: &mut GithubClient, options: &PullRequestOptions, repo_dir: &Path, username: &str) -> Result<Repository> {
     //FIXME validate that strings are not empty
 
-    let username = github_client.get_username()?;
-    debug!("Retrieved username for github account: {}", username);
-
     let fork =
-        github_client.existing_fork(username.as_str(), options.organisation, options.repository)?;
+        github_client.existing_fork(username, options.organisation, options.repository)?;
 
     let fork = if let Some(existing) = fork {
         existing
@@ -91,13 +85,10 @@ where
         github_client.create_fork(options.organisation, options.repository)?
     };
 
-    //FIXME allow users to specify path
-    let tmp_dir = tempfile::tempdir()?;
-
     let url = GitUrl::from_str(&fork.ssh_url).expect("github returned malformed clone URL");
-    debug!("Cloning repo to {:?}", tmp_dir.path());
+    debug!("Cloning repo to {:?}", repo_dir);
 
-    let repo = Repository::clone(url, tmp_dir.path())?;
+    let repo = Repository::clone(url, repo_dir)?;
 
     //FIXME check if upstream remote exists
 
@@ -121,8 +112,10 @@ where
         format!("{}/{}", DEFAULT_UPSTREAM_REMOTE, fork.default_branch).as_str(),
     )?;
 
-    transform(tmp_dir.path())?;
+    Ok(repo)
+}
 
+fn submit_pr(repo: &Repository, github_client: &mut GithubClient, options: &PullRequestOptions, username: &str) -> Result<Url> {
     //FIXME update rusty-git to ensure errors are captured
     repo.add(vec!["."])?;
     repo.commit_all(options.commit_mesage)?;
@@ -146,4 +139,22 @@ where
     let url = Url::parse(pull.url.as_str())?;
 
     Ok(url)
+}
+
+fn pr<F>(mut github_client: GithubClient, options: &PullRequestOptions, transform: F) -> Result<Url>
+where
+    F: Fn(&Path) -> Result<()>,
+{
+    let username = github_client.get_username()?;
+    debug!("Retrieved username for github account: {}", username);
+
+    //FIXME allow users to specify path
+    let tmp_dir = tempfile::tempdir()?;
+    let repo_dir = tmp_dir.path();
+    
+    let repo = prepare_fork(&mut github_client, options, repo_dir, &username)?;
+
+    transform(repo_dir)?;
+
+    submit_pr(&repo, &mut github_client, options, &username)
 }
