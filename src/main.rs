@@ -4,7 +4,6 @@ use std::path::Path;
 use std::time::SystemTime;
 use rustygit::types::BranchName;
 use std::str::FromStr;
-//FIXME re-export BranchName so consumers don't need to depend on rustygit
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 fn main() {

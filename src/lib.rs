@@ -2,9 +2,10 @@ use github::GithubClient;
 use log::debug;
 use rustygit::{
     error::GitError as RustyGitError,
-    types::{BranchName, GitUrl},
+    types::GitUrl,
     Repository,
 };
+pub use rustygit::types::BranchName;
 use std::io::Error as ioError;
 use std::path::Path;
 use std::result::Result as stdResult;
