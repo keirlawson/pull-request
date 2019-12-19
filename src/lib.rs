@@ -20,12 +20,12 @@ mod github;
 
 const DEFAULT_UPSTREAM_REMOTE: &str = "upstream";
 
-pub struct PullRequestOptions<'a> {
-    pub organisation: &'a str,
-    pub repository: &'a str,
+pub struct PullRequestOptions {
+    pub organisation: String,
+    pub repository: String,
     pub branch_name: BranchName,
-    pub commit_mesage: &'a str,
-    pub pr_title: &'a str,
+    pub commit_mesage: String,
+    pub pr_title: String,
 }
 
 //FIXME add messages from sources
@@ -77,13 +77,13 @@ fn prepare_fork(github_client: &mut GithubClient, options: &PullRequestOptions, 
     //FIXME validate that strings are not empty
 
     let fork =
-        github_client.existing_fork(username, options.organisation, options.repository)?;
+        github_client.existing_fork(username, &options.organisation, &options.repository)?;
 
     let fork = if let Some(existing) = fork {
         existing
     } else {
         debug!("No fork exists, forking");
-        github_client.create_fork(options.organisation, options.repository)?
+        github_client.create_fork(&options.organisation, &options.repository)?
     };
 
     let url = GitUrl::from_str(&fork.ssh_url).expect("github returned malformed clone URL");
@@ -119,16 +119,16 @@ fn prepare_fork(github_client: &mut GithubClient, options: &PullRequestOptions, 
 fn submit_pr(repo: &Repository, github_client: &mut GithubClient, options: &PullRequestOptions, username: &str) -> Result<Url> {
     //FIXME update rusty-git to ensure errors are captured
     repo.add(vec!["."])?;
-    repo.commit_all(options.commit_mesage)?;
+    repo.commit_all(&options.commit_mesage)?;
 
     repo.push_to_upstream("origin", &options.branch_name)?;
     debug!("Pushed changes to fork");
 
-    let base_branch = github_client.default_branch(options.organisation, options.repository)?;
+    let base_branch = github_client.default_branch(&options.organisation, &options.repository)?;
     let pull = github_client.open_pr(
-        options.organisation,
-        options.repository,
-        options.pr_title,
+        &options.organisation,
+        &options.repository,
+        &options.pr_title,
         base_branch.as_str(),
         &username,
         &options.branch_name,
