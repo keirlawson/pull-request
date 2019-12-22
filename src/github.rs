@@ -17,6 +17,11 @@ pub struct GithubClient {
     api_endpoint: String,
 }
 
+pub struct GithubRepository {
+    pub organisation: String,
+    pub repository: String
+}
+
 impl GithubClient {
     pub fn init(user_agent: &str, access_token: &str, api_endpoint: Option<&str>) -> Result<Self> {
         let rt = Runtime::new()?;
@@ -40,8 +45,7 @@ impl GithubClient {
 
     pub fn open_pr(
         &mut self,
-        organisation: &str,
-        repository: &str,
+        repository: &GithubRepository,
         title: &str,
         base_branch: &str,
         username: &str,
@@ -56,7 +60,7 @@ impl GithubClient {
 
         self.rt.block_on(
             self.github
-                .repo(organisation, repository)
+                .repo(&repository.organisation, &repository.repository)
                 .pulls()
                 .create(&options),
         )
@@ -65,13 +69,12 @@ impl GithubClient {
     pub fn existing_fork(
         &mut self,
         user: &str,
-        organisation: &str,
-        repository: &str,
+        repository: &GithubRepository,
     ) -> Result<Option<Repo>> {
         let options = ForkListOptions::builder().build();
         let mut forks = self.rt.block_on(
             self.github
-                .repo(organisation, repository)
+                .repo(&repository.organisation, &repository.repository)
                 .forks()
                 .iter(&options)
                 .filter(move |repo| repo.owner.login == user)
@@ -85,14 +88,14 @@ impl GithubClient {
         }
     }
 
-    pub fn create_fork(&mut self, organisation: &str, repository: &str) -> Result<Repo> {
+    pub fn create_fork(&mut self, repository: &GithubRepository) -> Result<Repo> {
         self.rt
-            .block_on(self.github.repo(organisation, repository).forks().create())
+            .block_on(self.github.repo(&repository.organisation, &repository.repository).forks().create())
     }
 
-    pub fn default_branch(&mut self, organisation: &str, repository: &str) -> Result<String> {
+    pub fn default_branch(&mut self, repository: &GithubRepository) -> Result<String> {
         self.rt
-            .block_on(self.github.repo(organisation, repository).get())
+            .block_on(self.github.repo(&repository.organisation, &repository.repository).get())
             .map(|r| r.default_branch)
     }
 

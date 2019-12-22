@@ -3,7 +3,7 @@ use log::debug;
 use rustygit::{
     error::GitError as RustyGitError,
     types::GitUrl,
-    Repository,
+    Repository as GitRepository,
 };
 pub use rustygit::types::BranchName;
 use std::io::Error as ioError;
@@ -13,6 +13,7 @@ use std::str::FromStr;
 use tempfile;
 use thiserror::Error;
 use url::{ParseError, Url};
+pub use github::GithubRepository;
 
 use hubcaps::Error as HubcapsError;
 
@@ -21,8 +22,6 @@ mod github;
 const DEFAULT_UPSTREAM_REMOTE: &str = "upstream";
 
 pub struct PullRequestOptions {
-    pub organisation: String,
-    pub repository: String,
     pub branch_name: BranchName,
     pub commit_mesage: String,
     pub pr_title: String,
@@ -44,52 +43,54 @@ pub enum PullRequestError {
 type Result<T> = stdResult<T, PullRequestError>;
 
 // FIXME Use traits to make params more flexible
-pub fn create_enterprise_pr<F>(
+pub fn create_enterprise_prs<F>(
     github_token: &str,
     user_agent: &str,
     api_endpoint: &str,
     options: &PullRequestOptions,
     transform: F,
-) -> Result<Url>
+    targets: Vec<GithubRepository>,
+) -> Result<Vec<Url>>
 where
     F: Fn(&Path) -> Result<()>,
 {
     let github_client = GithubClient::init(user_agent, github_token, Some(api_endpoint))?;
 
-    pr(github_client, options, transform)
+    pr(github_client, options, transform, targets)
 }
 
-pub fn create_pr<F>(
+pub fn create_prs<F>(
     github_token: &str,
     user_agent: &str,
     options: &PullRequestOptions,
     transform: F,
-) -> Result<Url>
+    targets: Vec<GithubRepository>
+) -> Result<Vec<Url>>
 where
     F: Fn(&Path) -> Result<()>,
 {
     let github_client = GithubClient::init(user_agent, github_token, None)?;
 
-    pr(github_client, options, transform)
+    pr(github_client, options, transform, targets)
 }
 
-fn prepare_fork(github_client: &mut GithubClient, options: &PullRequestOptions, repo_dir: &Path, username: &str) -> Result<Repository> {
+fn prepare_fork(github_client: &mut GithubClient, options: &PullRequestOptions, repository: &GithubRepository, repo_dir: &Path, username: &str) -> Result<GitRepository> {
     //FIXME validate that strings are not empty
 
     let fork =
-        github_client.existing_fork(username, &options.organisation, &options.repository)?;
+        github_client.existing_fork(username, &repository)?;
 
     let fork = if let Some(existing) = fork {
         existing
     } else {
         debug!("No fork exists, forking");
-        github_client.create_fork(&options.organisation, &options.repository)?
+        github_client.create_fork(&repository)?
     };
 
     let url = GitUrl::from_str(&fork.ssh_url).expect("github returned malformed clone URL");
     debug!("Cloning repo to {:?}", repo_dir);
 
-    let repo = Repository::clone(url, repo_dir)?;
+    let repo = GitRepository::clone(url, repo_dir)?;
 
     //FIXME check if upstream remote exists
 
@@ -98,8 +99,8 @@ fn prepare_fork(github_client: &mut GithubClient, options: &PullRequestOptions, 
         format!(
             "git@{}:{}/{}.git",
             github_client.get_host(),
-            options.organisation,
-            options.repository
+            repository.organisation,
+            repository.repository
         )
         .as_str(),
     )?;
@@ -116,7 +117,7 @@ fn prepare_fork(github_client: &mut GithubClient, options: &PullRequestOptions, 
     Ok(repo)
 }
 
-fn submit_pr(repo: &Repository, github_client: &mut GithubClient, options: &PullRequestOptions, username: &str) -> Result<Url> {
+fn submit_pr(repo: &GitRepository, github_client: &mut GithubClient, options: &PullRequestOptions, username: &str, repository: &GithubRepository) -> Result<Url> {
     //FIXME update rusty-git to ensure errors are captured
     repo.add(vec!["."])?;
     repo.commit_all(&options.commit_mesage)?;
@@ -124,10 +125,9 @@ fn submit_pr(repo: &Repository, github_client: &mut GithubClient, options: &Pull
     repo.push_to_upstream("origin", &options.branch_name)?;
     debug!("Pushed changes to fork");
 
-    let base_branch = github_client.default_branch(&options.organisation, &options.repository)?;
+    let base_branch = github_client.default_branch(&repository)?;
     let pull = github_client.open_pr(
-        &options.organisation,
-        &options.repository,
+        &repository,
         &options.pr_title,
         base_branch.as_str(),
         &username,
@@ -140,7 +140,7 @@ fn submit_pr(repo: &Repository, github_client: &mut GithubClient, options: &Pull
     Ok(url)
 }
 
-fn pr<F>(mut github_client: GithubClient, options: &PullRequestOptions, transform: F) -> Result<Url>
+fn pr<F>(mut github_client: GithubClient, options: &PullRequestOptions, transform: F, repositories: Vec<GithubRepository>) -> Result<Vec<Url>>
 where
     F: Fn(&Path) -> Result<()>,
 {
@@ -151,9 +151,12 @@ where
     let tmp_dir = tempfile::tempdir()?;
     let repo_dir = tmp_dir.path();
     
-    let repo = prepare_fork(&mut github_client, options, repo_dir, &username)?;
+    repositories.iter().map(|ghrepo| {
+        let repo = prepare_fork(&mut github_client, options, ghrepo, repo_dir, &username)?;
 
-    transform(repo_dir)?;
+        transform(repo_dir)?;
+    
+        submit_pr(&repo, &mut github_client, options, &username, ghrepo)
+    }).collect()
 
-    submit_pr(&repo, &mut github_client, options, &username)
 }

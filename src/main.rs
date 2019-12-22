@@ -8,6 +8,7 @@ use serde::Deserialize;
 use structopt::StructOpt;
 use std::io::prelude::*;
 use pull_request::PullRequestOptions;
+use pull_request::GithubRepository;
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
@@ -30,7 +31,7 @@ fn main() {
 
     let arguments = Arguments::from_args();
 
-    let options = read_config(&arguments.config);
+    let (options, repos) = read_config(&arguments.config);
 
     let github_token = env::var("GITHUB_TOKEN").unwrap();
 
@@ -43,13 +44,13 @@ fn main() {
         Ok(())
     };
 
-    match pull_request::create_pr(&github_token, USER_AGENT, &options, transform) {
+    match pull_request::create_prs(&github_token, USER_AGENT, &options, transform, repos) {
         Ok(_) => println!("success"),
         Err(e) => eprintln!("{:?}", e),
     }
 }
 
-fn read_config(location: &Path) -> PullRequestOptions {
+fn read_config(location: &Path) -> (PullRequestOptions, Vec<GithubRepository>) {
     let mut config_file = File::open(location).unwrap();
 
     
@@ -57,11 +58,17 @@ fn read_config(location: &Path) -> PullRequestOptions {
     config_file.read_to_end(&mut buffer).unwrap();
     let config: Config = toml::de::from_slice(&buffer).unwrap();
 
-    pull_request::PullRequestOptions {
-        organisation: config.organisation,
-        repository: config.repository,
+    let options = pull_request::PullRequestOptions {
         branch_name: BranchName::from_str(&config.branch_name).unwrap(),
         commit_mesage: config.commit_mesage,
         pr_title: config.pr_title,
-    }
+    };
+
+    //FIXME read list from file
+    let repos = vec!(GithubRepository {
+        organisation: config.organisation,
+        repository: config.repository
+    });
+
+    (options, repos)
 }
