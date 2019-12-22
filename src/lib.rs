@@ -151,6 +151,7 @@ where
     let tmp_dir = tempfile::tempdir()?;
     let repo_dir = tmp_dir.path();
     
+    //FIXME do phases idempotently
     repositories.iter().map(|ghrepo| {
         let repo = prepare_fork(&mut github_client, options, ghrepo, repo_dir, &username)?;
 
