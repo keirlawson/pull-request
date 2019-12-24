@@ -152,6 +152,7 @@ where
     let repo_dir = tmp_dir.path();
     
     //FIXME report errors
+    //FIXME right now failure is silent...
     let successful_transforms: Vec<(GitRepository, &GithubRepository)> = repositories.iter().map(|ghrepo| {
         let repo = prepare_fork(&mut github_client, options, ghrepo, repo_dir, &username)?;
 
