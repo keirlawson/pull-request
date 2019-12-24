@@ -151,13 +151,14 @@ where
     let tmp_dir = tempfile::tempdir()?;
     let repo_dir = tmp_dir.path();
     
-    //FIXME do phases idempotently
-    repositories.iter().map(|ghrepo| {
+    //FIXME report errors
+    let successful_transforms: Vec<(GitRepository, &GithubRepository)> = repositories.iter().map(|ghrepo| {
         let repo = prepare_fork(&mut github_client, options, ghrepo, repo_dir, &username)?;
 
-        transform(repo_dir)?;
-    
-        submit_pr(&repo, &mut github_client, options, &username, ghrepo)
-    }).collect()
+        transform(repo_dir).map(|_| (repo, ghrepo))
+    }).filter_map(Result::ok).collect();
 
+    //FIXME stop here for dry-run
+
+    successful_transforms.iter().map(|(repo, ghrepo)| submit_pr(&repo, &mut github_client, options, &username, ghrepo)).collect()
 }
