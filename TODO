@@ -1,17 +1,15 @@
+Lib
+
 * validate passed args
 * add README
 
 CLI
 
 * make front end
-* allow options to be specified in a TOML file
 * Deserialize impl for branchname
+* support choosing phase to execute
+* specify output dir
 * No panics
-
-Long term
-
-* what does dry-running look like?
-* multi-repo support
 
 Failure scenario:
 Org or repo don't exist
