@@ -9,6 +9,9 @@ use hubcaps::{
     Credentials, Github, Result,
 };
 
+#[cfg(feature = "cli")]
+use serde::Deserialize;
+
 const DEFAULT_GITHUB_API_ENDPOINT: &str = "https://api.github.com";
 
 pub struct GithubClient {
@@ -17,6 +20,7 @@ pub struct GithubClient {
     api_endpoint: String,
 }
 
+#[cfg_attr(feature = "cli", derive(Deserialize))]
 pub struct GithubRepository {
     pub organisation: String,
     pub repository: String

@@ -6,6 +6,7 @@ CLI
 * make front end
 * allow options to be specified in a TOML file
 * Deserialize impl for branchname
+* No panics
 
 Long term
 

@@ -14,8 +14,7 @@ const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VE
 
 #[derive(Deserialize)]
 struct Config {
-    organisation: String,
-    repository: String,
+    repositories: Vec<GithubRepository>,
     branch_name: String,
     commit_mesage: String,
     pr_title: String
@@ -64,11 +63,5 @@ fn read_config(location: &Path) -> (PullRequestOptions, Vec<GithubRepository>) {
         pr_title: config.pr_title,
     };
 
-    //FIXME read list from file
-    let repos = vec!(GithubRepository {
-        organisation: config.organisation,
-        repository: config.repository
-    });
-
-    (options, repos)
+    (options, config.repositories)
 }
