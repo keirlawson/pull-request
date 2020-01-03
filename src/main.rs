@@ -22,7 +22,8 @@ struct Config {
 
 #[derive(StructOpt)]
 struct Arguments {
-    config: PathBuf
+    config: PathBuf,
+    workspace: Option<PathBuf>
 }
 fn main() {
     human_panic::setup_panic!();
@@ -43,7 +44,7 @@ fn main() {
         Ok(())
     };
 
-    match pull_request::create_prs(&github_token, USER_AGENT, &options, transform, repos) {
+    match pull_request::create_prs(&github_token, USER_AGENT, &options, transform, repos, arguments.workspace) {
         Ok(_) => println!("success"),
         Err(e) => eprintln!("{:?}", e),
     }

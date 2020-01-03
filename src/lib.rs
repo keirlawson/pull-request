@@ -43,35 +43,55 @@ pub enum PullRequestError {
 type Result<T> = stdResult<T, PullRequestError>;
 
 // FIXME Use traits to make params more flexible
-pub fn create_enterprise_prs<F>(
+pub fn create_enterprise_prs<F, P>(
     github_token: &str,
     user_agent: &str,
     api_endpoint: &str,
     options: &PullRequestOptions,
     transform: F,
     targets: Vec<GithubRepository>,
+    workspace: Option<P>
 ) -> Result<Vec<Url>>
 where
     F: Fn(&Path) -> Result<()>,
+    P: AsRef<Path>
 {
     let github_client = GithubClient::init(user_agent, github_token, Some(api_endpoint))?;
 
-    pr(github_client, options, transform, targets)
+    pr_in_workspace(github_client, options, transform, targets, workspace)
 }
 
-pub fn create_prs<F>(
+pub fn create_prs<F, P>(
     github_token: &str,
     user_agent: &str,
     options: &PullRequestOptions,
     transform: F,
-    targets: Vec<GithubRepository>
+    targets: Vec<GithubRepository>,
+    workspace: Option<P>
 ) -> Result<Vec<Url>>
 where
     F: Fn(&Path) -> Result<()>,
+    P: AsRef<Path>
 {
     let github_client = GithubClient::init(user_agent, github_token, None)?;
 
-    pr(github_client, options, transform, targets)
+    pr_in_workspace(github_client, options, transform, targets, workspace)
+}
+
+fn pr_in_workspace<F, P>(github_client: GithubClient, options: &PullRequestOptions, transform: F, repositories: Vec<GithubRepository>, workspace: Option<P>) -> Result<Vec<Url>> 
+where
+    F: Fn(&Path) -> Result<()>,
+    P: AsRef<Path>
+{
+        if let Some(workspace) = workspace {
+            //FIXME what if dir doesn't exist?
+            pr(github_client, options, transform, repositories, workspace.as_ref())
+        } else {
+            //FIXME communicate to user that dir will be deleted on dry-run
+            let tmp_dir = tempfile::tempdir()?;
+            pr(github_client, options, transform, repositories, tmp_dir.path())
+            
+        }
 }
 
 fn prepare_fork(github_client: &mut GithubClient, options: &PullRequestOptions, repository: &GithubRepository, repo_dir: &Path, username: &str) -> Result<GitRepository> {
@@ -140,23 +160,21 @@ fn submit_pr(repo: &GitRepository, github_client: &mut GithubClient, options: &P
     Ok(url)
 }
 
-fn pr<F>(mut github_client: GithubClient, options: &PullRequestOptions, transform: F, repositories: Vec<GithubRepository>) -> Result<Vec<Url>>
+fn pr<F>(mut github_client: GithubClient, options: &PullRequestOptions, transform: F, repositories: Vec<GithubRepository>, workspace: &Path) -> Result<Vec<Url>>
 where
     F: Fn(&Path) -> Result<()>,
 {
     let username = github_client.get_username()?;
     debug!("Retrieved username for github account: {}", username);
 
-    //FIXME allow users to specify path
-    let tmp_dir = tempfile::tempdir()?;
-    let repo_dir = tmp_dir.path();
+    //FIXME need to determine dir within workspace
     
     //FIXME report errors
     //FIXME right now failure is silent...
     let successful_transforms: Vec<(GitRepository, &GithubRepository)> = repositories.iter().map(|ghrepo| {
-        let repo = prepare_fork(&mut github_client, options, ghrepo, repo_dir, &username)?;
+        let repo = prepare_fork(&mut github_client, options, ghrepo, workspace, &username)?;
 
-        transform(repo_dir).map(|_| (repo, ghrepo))
+        transform(workspace).map(|_| (repo, ghrepo))
     }).filter_map(Result::ok).collect();
 
     //FIXME stop here for dry-run

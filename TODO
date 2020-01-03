@@ -10,6 +10,7 @@ CLI
 * support choosing phase to execute
 * specify output dir
 * No panics
+* fork after transform
 
 Failure scenario:
 Org or repo don't exist
