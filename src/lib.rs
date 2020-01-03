@@ -10,6 +10,7 @@ use std::io::Error as ioError;
 use std::path::Path;
 use std::result::Result as stdResult;
 use std::str::FromStr;
+use std::fs;
 use tempfile;
 use thiserror::Error;
 use url::{ParseError, Url};
@@ -84,7 +85,7 @@ where
     P: AsRef<Path>
 {
         if let Some(workspace) = workspace {
-            //FIXME what if dir doesn't exist?
+            fs::create_dir_all(workspace.as_ref())?;
             pr(github_client, options, transform, repositories, workspace.as_ref())
         } else {
             //FIXME communicate to user that dir will be deleted on dry-run
