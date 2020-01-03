@@ -3,7 +3,6 @@ use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 use rustygit::types::BranchName;
-use std::str::FromStr;
 use serde::Deserialize;
 use structopt::StructOpt;
 use std::io::prelude::*;
@@ -15,7 +14,7 @@ const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VE
 #[derive(Deserialize)]
 struct Config {
     repositories: Vec<GithubRepository>,
-    branch_name: String,
+    branch_name: BranchName,
     commit_mesage: String,
     pr_title: String
 }
@@ -59,7 +58,7 @@ fn read_config(location: &Path) -> (PullRequestOptions, Vec<GithubRepository>) {
     let config: Config = toml::de::from_slice(&buffer).unwrap();
 
     let options = pull_request::PullRequestOptions {
-        branch_name: BranchName::from_str(&config.branch_name).unwrap(),
+        branch_name: config.branch_name,
         commit_mesage: config.commit_mesage,
         pr_title: config.pr_title,
     };

@@ -6,10 +6,11 @@ Lib
 CLI
 
 * make front end
-* Deserialize impl for branchname
 * support choosing phase to execute
 * specify output dir
 * No panics
+
+Longer term
 * fork after transform
 
 Failure scenario:
