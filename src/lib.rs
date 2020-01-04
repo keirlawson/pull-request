@@ -168,8 +168,6 @@ where
 {
     let username = github_client.get_username()?;
     debug!("Retrieved username for github account: {}", username);
-
-    //FIXME need to determine dir within workspace
     
     //FIXME report errors
     //FIXME right now failure is silent...
