@@ -8,12 +8,13 @@ use structopt::StructOpt;
 use std::io::prelude::*;
 use pull_request::PullRequestOptions;
 use pull_request::GithubRepository;
+use std::collections::HashSet;
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
 #[derive(Deserialize)]
 struct Config {
-    repositories: Vec<GithubRepository>,
+    repositories: HashSet<GithubRepository>,
     branch_name: BranchName,
     commit_mesage: String,
     pr_title: String
@@ -49,7 +50,7 @@ fn main() {
     }
 }
 
-fn read_config(location: &Path) -> (PullRequestOptions, Vec<GithubRepository>) {
+fn read_config(location: &Path) -> (PullRequestOptions, HashSet<GithubRepository>) {
     let mut config_file = File::open(location).unwrap();
 
     

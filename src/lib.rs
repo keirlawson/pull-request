@@ -15,6 +15,7 @@ use tempfile;
 use thiserror::Error;
 use url::{ParseError, Url};
 pub use github::GithubRepository;
+use std::collections::HashSet;
 
 use hubcaps::Error as HubcapsError;
 
@@ -50,7 +51,7 @@ pub fn create_enterprise_prs<F, P>(
     api_endpoint: &str,
     options: &PullRequestOptions,
     transform: F,
-    targets: Vec<GithubRepository>,
+    targets: HashSet<GithubRepository>,
     workspace: Option<P>
 ) -> Result<Vec<Url>>
 where
@@ -67,7 +68,7 @@ pub fn create_prs<F, P>(
     user_agent: &str,
     options: &PullRequestOptions,
     transform: F,
-    targets: Vec<GithubRepository>,
+    targets: HashSet<GithubRepository>,
     workspace: Option<P>
 ) -> Result<Vec<Url>>
 where
@@ -79,7 +80,7 @@ where
     pr_in_workspace(github_client, options, transform, targets, workspace)
 }
 
-fn pr_in_workspace<F, P>(github_client: GithubClient, options: &PullRequestOptions, transform: F, repositories: Vec<GithubRepository>, workspace: Option<P>) -> Result<Vec<Url>> 
+fn pr_in_workspace<F, P>(github_client: GithubClient, options: &PullRequestOptions, transform: F, repositories: HashSet<GithubRepository>, workspace: Option<P>) -> Result<Vec<Url>> 
 where
     F: Fn(&Path) -> Result<()>,
     P: AsRef<Path>
@@ -161,7 +162,7 @@ fn submit_pr(repo: &GitRepository, github_client: &mut GithubClient, options: &P
     Ok(url)
 }
 
-fn pr<F>(mut github_client: GithubClient, options: &PullRequestOptions, transform: F, repositories: Vec<GithubRepository>, workspace: &Path) -> Result<Vec<Url>>
+fn pr<F>(mut github_client: GithubClient, options: &PullRequestOptions, transform: F, repositories: HashSet<GithubRepository>, workspace: &Path) -> Result<Vec<Url>>
 where
     F: Fn(&Path) -> Result<()>,
 {

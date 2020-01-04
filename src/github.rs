@@ -20,7 +20,7 @@ pub struct GithubClient {
     api_endpoint: String,
 }
 
-#[cfg_attr(feature = "cli", derive(Deserialize))]
+#[cfg_attr(feature = "cli", derive(Deserialize, Hash, PartialEq, Eq))]
 pub struct GithubRepository {
     pub organisation: String,
     pub repository: String
