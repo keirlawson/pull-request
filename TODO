@@ -7,7 +7,6 @@ CLI
 
 * make front end
 * support choosing phase to execute
-* specify output dir
 * No panics
 
 Longer term

@@ -2,6 +2,7 @@ use futures::future::Future;
 use futures::Stream;
 use tokio::runtime::current_thread::Runtime;
 use rustygit::types::BranchName;
+use std::path::PathBuf;
 
 use hubcaps::repositories::{ForkListOptions, Repo};
 use hubcaps::{
@@ -25,6 +26,17 @@ pub struct GithubClient {
 pub struct GithubRepository {
     pub organisation: String,
     pub repository: String
+}
+
+impl GithubRepository {
+    pub fn path_fragment(&self) -> PathBuf {
+        let mut path = PathBuf::new();
+
+        path.push(&self.organisation);
+        path.push(&self.repository);
+
+        path
+    }
 }
 
 impl GithubClient {

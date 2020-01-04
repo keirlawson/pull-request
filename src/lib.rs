@@ -174,9 +174,10 @@ where
     //FIXME report errors
     //FIXME right now failure is silent...
     let successful_transforms: Vec<(GitRepository, &GithubRepository)> = repositories.iter().map(|ghrepo| {
-        let repo = prepare_fork(&mut github_client, options, ghrepo, workspace, &username)?;
+        let repo_path = workspace.join(ghrepo.path_fragment());
+        let repo = prepare_fork(&mut github_client, options, ghrepo, repo_path.as_path(), &username)?;
 
-        transform(workspace).map(|_| (repo, ghrepo))
+        transform(repo_path.as_path()).map(|_| (repo, ghrepo))
     }).filter_map(Result::ok).collect();
 
     //FIXME stop here for dry-run
