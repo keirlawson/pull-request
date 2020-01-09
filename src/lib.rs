@@ -16,12 +16,15 @@ use thiserror::Error;
 use url::{ParseError, Url};
 pub use github::GithubRepository;
 use std::collections::HashSet;
+use std::error::Error;
 
 use hubcaps::Error as HubcapsError;
 
 mod github;
 
 const DEFAULT_UPSTREAM_REMOTE: &str = "upstream";
+
+type TransformResult = stdResult<(), Box<dyn Error>>;
 
 pub struct PullRequestOptions {
     pub branch_name: BranchName,
@@ -40,6 +43,8 @@ pub enum PullRequestError {
     TemporaryDirectoryError(#[from] ioError),
     #[error("Unable to parse pull request URL")]
     UrlError(#[from] ParseError),
+    #[error("Unable to apply transformaiton to repo: {0}")]
+    TransformError(#[from] Box<dyn Error>)
 }
 
 type Result<T> = stdResult<T, PullRequestError>;
@@ -53,9 +58,9 @@ pub fn create_enterprise_prs<F, P>(
     transform: F,
     targets: HashSet<GithubRepository>,
     workspace: Option<P>
-) -> Result<Vec<Url>>
+) -> Result<Vec<Result<Url>>>
 where
-    F: Fn(&Path) -> Result<()>,
+    F: Fn(&Path) -> TransformResult,
     P: AsRef<Path>
 {
     let github_client = GithubClient::init(user_agent, github_token, Some(api_endpoint))?;
@@ -70,9 +75,9 @@ pub fn create_prs<F, P>(
     transform: F,
     targets: HashSet<GithubRepository>,
     workspace: Option<P>
-) -> Result<Vec<Url>>
+) -> Result<Vec<Result<Url>>>
 where
-    F: Fn(&Path) -> Result<()>,
+    F: Fn(&Path) -> TransformResult,
     P: AsRef<Path>
 {
     let github_client = GithubClient::init(user_agent, github_token, None)?;
@@ -80,9 +85,9 @@ where
     pr_in_workspace(github_client, options, transform, targets, workspace)
 }
 
-fn pr_in_workspace<F, P>(github_client: GithubClient, options: &PullRequestOptions, transform: F, repositories: HashSet<GithubRepository>, workspace: Option<P>) -> Result<Vec<Url>> 
+fn pr_in_workspace<F, P>(github_client: GithubClient, options: &PullRequestOptions, transform: F, repositories: HashSet<GithubRepository>, workspace: Option<P>) -> Result<Vec<Result<Url>>> 
 where
-    F: Fn(&Path) -> Result<()>,
+    F: Fn(&Path) -> TransformResult,
     P: AsRef<Path>
 {
         if let Some(workspace) = workspace {
@@ -162,23 +167,23 @@ fn submit_pr(repo: &GitRepository, github_client: &mut GithubClient, options: &P
     Ok(url)
 }
 
-fn pr<F>(mut github_client: GithubClient, options: &PullRequestOptions, transform: F, repositories: HashSet<GithubRepository>, workspace: &Path) -> Result<Vec<Url>>
+fn pr<F>(mut github_client: GithubClient, options: &PullRequestOptions, transform: F, repositories: HashSet<GithubRepository>, workspace: &Path) -> Result<Vec<Result<Url>>>
 where
-    F: Fn(&Path) -> Result<()>,
+    F: Fn(&Path) -> TransformResult,
 {
     let username = github_client.get_username()?;
     debug!("Retrieved username for github account: {}", username);
     
     //FIXME report errors
     //FIXME right now failure is silent...
-    let successful_transforms: Vec<(GitRepository, &GithubRepository)> = repositories.iter().map(|ghrepo| {
+    let successful_transforms: Vec<Result<(GitRepository, &GithubRepository)>> = repositories.iter().map(|ghrepo| -> Result<(GitRepository, &GithubRepository)> {
         let repo_path = workspace.join(ghrepo.path_fragment());
         let repo = prepare_fork(&mut github_client, options, ghrepo, repo_path.as_path(), &username)?;
 
-        transform(repo_path.as_path()).map(|_| (repo, ghrepo))
-    }).filter_map(Result::ok).collect();
+        transform(repo_path.as_path()).map(|_| (repo, ghrepo)).map_err(|e| e.into())
+    }).collect();
 
     //FIXME stop here for dry-run
 
-    successful_transforms.iter().map(|(repo, ghrepo)| submit_pr(&repo, &mut github_client, options, &username, ghrepo)).collect()
+    successful_transforms.into_iter().map(|res| res.map(|(repo, ghrepo)| submit_pr(&repo, &mut github_client, options, &username, ghrepo))).collect()
 }
