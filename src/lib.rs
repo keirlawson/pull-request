@@ -201,7 +201,7 @@ fn submit_pr(repo: &GitRepository, github_client: &mut GithubClient, options: &P
     )?;
     debug!("Opened PR");
 
-    let url = Url::parse(pull.url.as_str())?;
+    let url = Url::parse(pull.html_url.as_str())?;
 
     Ok(url)
 }
