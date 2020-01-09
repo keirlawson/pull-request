@@ -68,6 +68,26 @@ where
     pr_in_workspace(github_client, options, transform, targets, workspace)
 }
 
+pub fn create_enterprise_pr<F, P>(
+    github_token: &str,
+    user_agent: &str,
+    api_endpoint: &str,
+    options: &PullRequestOptions,
+    transform: F,
+    target: GithubRepository,
+    workspace: Option<P>
+) -> Result<Url>
+where
+    F: Fn(&Path) -> TransformResult,
+    P: AsRef<Path>
+{
+    let mut targets = HashSet::new();
+    targets.insert(target);
+    let prs = create_enterprise_prs(github_token, user_agent, api_endpoint, options, transform, targets, workspace);
+    
+    prs.and_then(|mut results| results.remove(0))
+}
+
 pub fn create_prs<F, P>(
     github_token: &str,
     user_agent: &str,
@@ -83,6 +103,25 @@ where
     let github_client = GithubClient::init(user_agent, github_token, None)?;
 
     pr_in_workspace(github_client, options, transform, targets, workspace)
+}
+
+pub fn create_pr<F, P>(
+    user_agent: &str,
+    api_endpoint: &str,
+    options: &PullRequestOptions,
+    transform: F,
+    target: GithubRepository,
+    workspace: Option<P>
+) -> Result<Url>
+where
+    F: Fn(&Path) -> TransformResult,
+    P: AsRef<Path>
+{
+    let mut targets = HashSet::new();
+    targets.insert(target);
+    let prs = create_prs(user_agent, api_endpoint, options, transform, targets, workspace);
+    
+    prs.and_then(|mut results| results.remove(0))
 }
 
 fn pr_in_workspace<F, P>(github_client: GithubClient, options: &PullRequestOptions, transform: F, repositories: HashSet<GithubRepository>, workspace: Option<P>) -> Result<Vec<Result<Url>>> 
