@@ -1,11 +1,11 @@
 [package]
 name = "pull-request"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["Keir Lawson <keirlawson@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-hubcaps = { git = "https://github.com/keirlawson/hubcaps", branch = "repo-forking" }
+hubcaps = { git = "https://github.com/keirlawson/hubcaps", branch = "ghe-pagination" }
 futures = "0.1"
 tokio = "0.1"
 rustygit = "0.2.7"
